@@ -1,7 +1,8 @@
 import requests
 import pandas as pd
 
-API_URL = "https://api.football-data.org/v2/matches?status=SCHEDULED"
+API_URL = API_URL = "https://api.football-data.org/v2/matches?status=FINISHED"
+
 API_KEY = "af56a1c0b4654b80a8400478462ae75"  # Replace with your actual API key
 
 def get_upcoming_fixtures():
