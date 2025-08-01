@@ -1,18 +1,17 @@
 import requests
 import pandas as pd
 
-API_URL = API_URL = "https://api.football-data.org/v2/matches?status=FINISHED"
-
-API_KEY = "af56a1c0b4654b80a8400478462ae75"  # Replace with your actual API key
+API_URL = "https://api.football-data.org/v2/matches?status=SCHEDULED"
+API_KEY = "YOUR_REAL_API_KEY_HERE"  # Replace this with your real API key
 
 def get_upcoming_fixtures():
     headers = {"X-Auth-Token": API_KEY}
     try:
         resp = requests.get(API_URL, headers=headers)
-        resp.raise_for_status()  # Raises error for bad responses
+        resp.raise_for_status()
         data = resp.json()
-        matches = []
 
+        matches = []
         for match in data.get("matches", []):
             matches.append({
                 "fixture_id": match.get("id"),
@@ -25,8 +24,8 @@ def get_upcoming_fixtures():
         return pd.DataFrame(matches)
 
     except requests.exceptions.HTTPError as e:
-        print(f"HTTP error occurred: {e.response.status_code} - {e.response.reason}")
+        print(f"HTTP error: {e.response.status_code} - {e.response.reason}")
         return pd.DataFrame()
     except Exception as e:
-        print(f"Unexpected error occurred: {e}")
+        print(f"Other error: {e}")
         return pd.DataFrame()
