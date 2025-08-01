@@ -15,17 +15,17 @@ def get_upcoming_fixtures():
 
     params = {
         "date": today,
-        "to": end_date,
-        "status": "NS"  # Not Started matches only
+        "to": end_date
+        # no status filter to maximize returned fixtures
     }
 
     try:
         resp = requests.get(API_URL, headers=headers, params=params)
-        print(f"Status code: {resp.status_code}")  # Debug print
+        print(f"API Response status: {resp.status_code}")
         resp.raise_for_status()
         data = resp.json()
-        print(f"API response keys: {list(data.keys())}")  # Debug print
-        print(f"Number of matches returned: {len(data.get('response', []))}")  # Debug print
+        print(f"Response keys: {list(data.keys())}")
+        print(f"Number of matches received: {len(data.get('response', []))}")
 
         matches = []
         for fixture in data.get("response", []):
@@ -42,7 +42,8 @@ def get_upcoming_fixtures():
             })
 
         df = pd.DataFrame(matches)
-        print(df.head())  # Debug print of first few fixtures
+        print("First few fixtures:")
+        print(df.head())
         return df
 
     except requests.exceptions.HTTPError as e:
@@ -51,5 +52,3 @@ def get_upcoming_fixtures():
     except Exception as e:
         print(f"Unexpected error: {e}")
         return pd.DataFrame()
-
-   
