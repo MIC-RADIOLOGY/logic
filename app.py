@@ -1,56 +1,64 @@
 import streamlit as st
 import pandas as pd
-
 from data_loader import get_upcoming_fixtures
 from predictor import (
     predict_winner,
     predict_goals,
     predict_cards,
     predict_corners,
-    predict_btts,
+    predict_btts
 )
 from metrics import init_db, log_prediction, get_accuracy_by_league
 
-st.set_page_config(page_title="AI Football Predictions", layout="wide")
+st.set_page_config(page_title="⚽ AI Football Match Predictor", layout="wide")
+st.title("⚽ AI Football Match Predictor")
 
+# Initialize local database
 init_db()
 
-st.title("⚽ AI Match Prediction App")
-
-# Fetch fixtures
+# Load fixtures
 fixtures = get_upcoming_fixtures()
 
-# Sidebar filter by league
-all_leagues = fixtures["league"].unique()
-selected_leagues = st.sidebar.multiselect(
-    "Select Leagues to Show", all_leagues, default=list(all_leagues)
-)
-
-filtered_fixtures = fixtures[fixtures["league"].isin(selected_leagues)]
-
-if filtered_fixtures.empty:
-    st.write("No fixtures available for selected leagues.")
+# Handle empty or missing data safely
+if fixtures.empty or "league" not in fixtures.columns:
+    st.warning("⚠️ No fixture data available. Check your API key or try again later.")
 else:
-    for _, row in filtered_fixtures.iterrows():
-        st.subheader(f"{row['date'][:10]} - {row['home']} vs {row['away']} ({row['league']})")
+    # League selector
+    all_leagues = fixtures["league"].unique()
+    selected_leagues = st.sidebar.multiselect(
+        "Select Leagues to Show", all_leagues, default=list(all_leagues)
+    )
 
-        winner_pred = predict_winner(row)
-        goals_pred = predict_goals(row)
-        cards_pred = predict_cards(row)
-        corners_pred = predict_corners(row)
-        btts_pred = predict_btts(row)
+    # Filter matches by league
+    filtered_fixtures = fixtures[fixtures["league"].isin(selected_leagues)]
 
-        st.write(f"🏆 Winner Prediction: {winner_pred['winner']} ({winner_pred['confidence']}% confidence)")
-        st.write(f"🎯 Over/Under Goals: {goals_pred}")
-        st.write(f"🟨 Cards Tip: {cards_pred}")
-        st.write(f"🟦 Corners Tip: {corners_pred}")
-        st.write(f"⚽ Both Teams to Score: {btts_pred}")
-        st.markdown("---")
+    if filtered_fixtures.empty:
+        st.info("No fixtures in selected leagues.")
+    else:
+        # Loop through each fixture and show predictions
+        for _, row in filtered_fixtures.iterrows():
+            st.subheader(f"📅 {row['date'][:10]} - {row['home']} vs {row['away']} ({row['league']})")
 
-# Accuracy dashboard
-st.header("Prediction Accuracy by League")
+            # AI Predictions
+            winner = predict_winner(row)
+            goals = predict_goals(row)
+            cards = predict_cards(row)
+            corners = predict_corners(row)
+            btts = predict_btts(row)
+
+            # Display Predictions
+            st.write(f"🏆 **Winner Prediction:** {winner['winner']} ({winner['confidence']}% confidence)")
+            st.write(f"🎯 **Over/Under Goals:** {goals}")
+            st.write(f"🟨 **Cards Tip:** {cards}")
+            st.write(f"🟦 **Corners Tip:** {corners}")
+            st.write(f"⚽ **Both Teams to Score:** {btts}")
+            st.markdown("---")
+
+# Accuracy dashboard (bottom of page)
+st.header("📊 Prediction Accuracy by League")
 accuracy_df = get_accuracy_by_league()
+
 if not accuracy_df.empty:
     st.bar_chart(accuracy_df.set_index("league")["accuracy"])
 else:
-    st.write("No accuracy data available yet.")
+    st.info("No prediction accuracy data available yet.")
