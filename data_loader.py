@@ -1,29 +1,21 @@
 import requests
-import pandas as pd
 
-API_KEY = "YOUR_API_KEY"  # Replace with your real API key
-BASE_URL = "https://api.sportmonks.com/v3/football"
+API_URL = "https://api.football-data.org/v2/matches?status=SCHEDULED"
+API_KEY = "olN2j1ncmVXENJC5l2058uoNpTePACspeVvL95UJFyEfqfZm5cPIUPRjhR2AJ6GcVkxW7aZXcHXbtaSIIcnWetLx0VmCD7saTchPs96g9vpyq9Z41DlcwNmm6DBtFijk
+"  # <-- Replace with your actual API key
 
-def get_upcoming_fixtures(days=7):
-    """Fetch upcoming fixtures within next `days` days"""
-    today = pd.Timestamp.today().date()
-    end_date = today + pd.Timedelta(days=days)
-    url = f"{BASE_URL}/fixtures/between/{today}/{end_date}"
-    params = {"api_token": API_KEY, "include": "league,localTeam,visitorTeam"}
-    resp = requests.get(url, params=params)
-    resp.raise_for_status()
-    data = resp.json().get("data", [])
-    matches = []
-    for fix in data:
-        league = fix.get("league", {}).get("data", {}).get("name", "Unknown League")
-        home = fix.get("localTeam", {}).get("data", {}).get("name", "Home Team")
-        away = fix.get("visitorTeam", {}).get("data", {}).get("name", "Away Team")
-        date = fix.get("starting_at", "")
-        matches.append({
-            "fixture_id": fix["id"],
-            "league": league,
-            "home": home,
-            "away": away,
-            "date": date
-        })
-    return pd.DataFrame(matches)
+def get_upcoming_fixtures():
+    headers = {"X-Auth-Token": API_KEY}
+    try:
+        resp = requests.get(API_URL, headers=headers)
+        resp.raise_for_status()  # Raises HTTPError for bad responses
+        data = resp.json()
+        return data.get("matches", [])
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP error occurred: {e.response.status_code} - {e.response.reason}")
+        return []
+    except Exception as e:
+        print(f"Unexpected error occurred: {e}")
+        return []
+
+           
