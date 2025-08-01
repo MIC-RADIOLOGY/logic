@@ -1,21 +1,31 @@
 import requests
+import pandas as pd
 
 API_URL = "https://api.football-data.org/v2/matches?status=SCHEDULED"
-API_KEY = "olN2j1ncmVXENJC5l2058uoNpTePACspeVvL95UJFyEfqfZm5cPIUPRjhR2AJ6GcVkxW7aZXcHXbtaSIIcnWetLx0VmCD7saTchPs96g9vpyq9Z41DlcwNmm6DBtFijk
-"  # <-- Replace with your actual API key
+API_KEY = "af56a1c0b4654b80a8400478462ae75"  # Replace with your actual API key
 
 def get_upcoming_fixtures():
     headers = {"X-Auth-Token": API_KEY}
     try:
         resp = requests.get(API_URL, headers=headers)
-        resp.raise_for_status()  # Raises HTTPError for bad responses
+        resp.raise_for_status()  # Raises error for bad responses
         data = resp.json()
-        return data.get("matches", [])
+        matches = []
+
+        for match in data.get("matches", []):
+            matches.append({
+                "fixture_id": match.get("id"),
+                "league": match.get("competition", {}).get("name", "Unknown League"),
+                "home": match.get("homeTeam", {}).get("name", "Home"),
+                "away": match.get("awayTeam", {}).get("name", "Away"),
+                "date": match.get("utcDate", "Unknown Date")
+            })
+
+        return pd.DataFrame(matches)
+
     except requests.exceptions.HTTPError as e:
         print(f"HTTP error occurred: {e.response.status_code} - {e.response.reason}")
-        return []
+        return pd.DataFrame()
     except Exception as e:
         print(f"Unexpected error occurred: {e}")
-        return []
-
-           
+        return pd.DataFrame()
