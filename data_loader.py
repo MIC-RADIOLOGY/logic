@@ -11,12 +11,12 @@ def get_upcoming_fixtures():
     }
 
     today = datetime.utcnow().strftime('%Y-%m-%d')
-    end_date = (datetime.utcnow() + timedelta(days=7)).strftime('%Y-%m-%d')
+    four_weeks_later = (datetime.utcnow() + timedelta(days=28)).strftime('%Y-%m-%d')
 
     params = {
         "date": today,
-        "to": end_date
-        # no status filter to maximize returned fixtures
+        "to": four_weeks_later
+        # No status filter, so all upcoming matches are included
     }
 
     try:
